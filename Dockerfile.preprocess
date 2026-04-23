@@ -1,0 +1,51 @@
+FROM ubuntu:24.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    gnupg \
+    lsb-release \
+    cmake \
+    make \
+    g++ \
+    python3 \
+    zlib1g-dev \
+    libtbb-dev \
+    libreadline-dev \
+    libncurses-dev \
+    libre2-dev \
+    pkg-config \
+    libssl-dev \
+    git \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    UBUNTU_CODENAME="$(lsb_release --codename --short)"; \
+    curl -fsSLO "https://packages.apache.org/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-${UBUNTU_CODENAME}.deb"; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends "./apache-arrow-apt-source-latest-${UBUNTU_CODENAME}.deb"; \
+    rm -f "./apache-arrow-apt-source-latest-${UBUNTU_CODENAME}.deb"; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+      libarrow-dev \
+      libprotobuf-dev \
+      protobuf-compiler; \
+    rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain nightly; \
+    . "$HOME/.cargo/env"; \
+    for i in 1 2 3 4 5; do \
+      rustup toolchain install nightly --profile minimal && break; \
+      if [ "$i" -eq 5 ]; then exit 1; fi; \
+      sleep 5; \
+    done; \
+    rustup default nightly
+
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+COPY docker/preprocess-entrypoint.sh /usr/local/bin/preprocess-entrypoint.sh
+RUN chmod +x /usr/local/bin/preprocess-entrypoint.sh
+
+WORKDIR /repo
+ENTRYPOINT ["/usr/local/bin/preprocess-entrypoint.sh"]

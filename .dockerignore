@@ -1,0 +1,13 @@
+.git
+.gitignore
+**/target
+**/.DS_Store
+
+Maps/data
+RoutingKit
+CCH-Generator
+CCH_Data_Pipeline
+camera-config-web
+scripts
+
+*.log

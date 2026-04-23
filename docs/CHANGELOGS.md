@@ -1,5 +1,31 @@
 # CHANGELOGS.md
 
+## 2026-04-23 — add docker-only preprocess runner (arg-based)
+
+- **`Dockerfile.preprocess`** (new): Added a dedicated preprocessing image with
+  C++/Rust toolchain dependencies and nightly Rust preinstalled for graph-data
+  generation.
+- **`docker/preprocess-entrypoint.sh`** (new): Added argument-based preprocessing
+  entrypoint (`<input_pbf> <output_dir> <profile>`) so users can run
+  preprocessing via plain `docker run ... args` without inline shell commands.
+- **`docker/preprocess-entrypoint.sh`** (new): Builds `generate_line_graph` from
+  a temporary container-local copy of sources and applies compatibility patching
+  there only, so host repository files are not modified.
+- **`docker/preprocess-entrypoint.sh`** (updated): Added automatic CRLF-to-LF normalization for mounted repo scripts (`RoutingKit/generate_make_file` and flow-cutter scripts) to avoid `python3\r` shebang failures in Docker runs.
+- **`docker/preprocess-entrypoint.sh`** (updated): Added 1-arg and 2-arg shorthand modes (`<input_pbf>` and `<input_pbf> <profile>`) with default output path derivation (`/repo/Maps/data/<map>_<profile>`) and default profile `car`.
+- **`Dockerfile.preprocess`** (updated): Added missing native build dependencies (`libreadline-dev`, `libncurses-dev`, `libre2-dev`) to satisfy InertialFlowCutter readline/TTY linking and Arrow optional dependency discovery in CMake.
+
+## 2026-04-23 — add root Docker image build for hanoi_server
+
+- **`Dockerfile`** (new): Added a root multi-stage Docker build that compiles
+  `CCH-Hanoi`'s `hanoi_server` binary with nightly Rust and produces a slim
+  Debian runtime image exposing ports `8080` and `9080`.
+- **`docker/entrypoint.sh`** (new): Added runtime launcher with env-driven
+  configuration for `GRAPH_DIR`, `QUERY_PORT`, `CUSTOMIZE_PORT`, `LOG_FORMAT`,
+  and optional line-graph mode (`LINE_GRAPH=true` + `ORIGINAL_GRAPH_DIR`).
+- **`.dockerignore`** (new): Added Docker ignore rules to keep build context
+  lean by excluding git metadata, build outputs, and large/unneeded folders.
+
 ## 2026-04-15 — Cập nhật tài liệu hướng dẫn theo source hiện tại
 
 - **`docs/Hướng dẫn sử dụng.md`**: Thêm mục 2 — Giao diện Route Viewer (UI):
